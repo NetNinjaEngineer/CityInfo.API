@@ -1,9 +1,10 @@
 
+using CityInfo.API.Contracts;
 using CityInfo.API.Data;
+using CityInfo.API.Repository;
+using CityInfo.API.Repository.Implementors;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using System.Reflection;
 using System.Text.Json.Serialization;
 
 namespace CityInfo.API;
@@ -20,20 +21,21 @@ public class Program
         })
             .AddXmlDataContractSerializerFormatters()
             .AddJsonOptions(options =>
-                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles)
-            .AddNewtonsoftJson(options =>
-                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
+                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
-        builder.Services.AddAutoMapper(typeof(Program).Assembly);
         builder.Services.AddSingleton<FileExtensionContentTypeProvider>();
         var connectionString = builder.Configuration.GetSection("ConnectionStrings:DefaultConnection").Value;
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));
 
-        builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
+        builder.Services.AddAutoMapper(typeof(Program).Assembly);
+        builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+        builder.Services.AddScoped<ICityRepository, CityRepository>();
+        builder.Services.AddScoped<IPointOfInterestRepository, PointOfInterestRepository>();
+        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         var app = builder.Build();
 
