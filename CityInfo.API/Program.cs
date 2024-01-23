@@ -2,6 +2,7 @@
 using CityInfo.API.Data;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 namespace CityInfo.API;
 
@@ -14,7 +15,10 @@ public class Program
         builder.Services.AddControllers(options =>
         {
             options.ReturnHttpNotAcceptable = true;
-        }).AddXmlDataContractSerializerFormatters();
+        })
+            .AddXmlDataContractSerializerFormatters()
+            .AddJsonOptions(options =>
+                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 
         builder.Services.AddEndpointsApiExplorer();

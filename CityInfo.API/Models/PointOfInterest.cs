@@ -2,6 +2,7 @@
 
 public class PointOfInterest
 {
+    public PointOfInterest() { }
     public PointOfInterest(int id, string? name, string? category, string? description, double latitude, double longitude, int cityId)
     {
         Id = id;
