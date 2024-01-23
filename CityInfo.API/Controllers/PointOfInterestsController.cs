@@ -65,6 +65,9 @@ public class PointOfInterestsController : ControllerBase
     public ActionResult<PointOfInterestDto> CreatePointOfInterest(int cityId,
         [FromBody] PointOfInterestForCreationDto pointOfInterest)
     {
+        if (!ModelState.IsValid)
+            return BadRequest();
+
         var city = _context.Cities.FirstOrDefault(c => c.Id == cityId);
         if (city == null)
             return NotFound();
@@ -99,5 +102,29 @@ public class PointOfInterestsController : ControllerBase
             PointOfInterestId = pointOfInterestToReturn.Id
         }, pointOfInterestToReturn);
 
+    }
+
+
+    [HttpPut("{pointOfInterestId}")]
+    public ActionResult UpdatePointOfInterest(int cityId,
+        int pointOfInterestId, PointOfInterestForUpdateDto dto)
+    {
+        var city = _context.Cities.FirstOrDefault(c => c.Id == cityId);
+        if (city == null) return NotFound();
+
+        var pointOfInterest = _context.PointOfInterests.FirstOrDefault(p =>
+        p.Id == pointOfInterestId);
+        if (pointOfInterest is null)
+            return NotFound();
+
+        pointOfInterest.Longitude = dto.Longitude;
+        pointOfInterest.Latitude = dto.Latitude;
+        pointOfInterest.Description = dto.Description;
+        pointOfInterest.Category = dto.Category;
+        pointOfInterest.Name = dto.Name;
+
+
+        _context.SaveChanges();
+        return NoContent();
     }
 }
