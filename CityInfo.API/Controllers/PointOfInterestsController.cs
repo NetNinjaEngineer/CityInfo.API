@@ -107,15 +107,9 @@ public class PointOfInterestsController : ControllerBase
         if (pointOfInterest is null)
             return NotFound();
 
-        pointOfInterest.Id = pointOfInterestId;
-        pointOfInterest.CityId = cityId;
-        pointOfInterest.Longitude = dto.Longitude;
-        pointOfInterest.Latitude = dto.Latitude;
-        pointOfInterest.Category = dto.Category;
-        pointOfInterest.Description = dto.Description;
-        pointOfInterest.Name = dto.Name;
+        var pointOfInterestForUpdate = _mapper.Map(dto, pointOfInterest);
 
-        _unitOfWork.PointOfInterestRepository.UpdatePointOfInterest(pointOfInterest);
+        _unitOfWork.PointOfInterestRepository.UpdatePointOfInterest(pointOfInterestForUpdate);
 
         await _unitOfWork.SaveAsync();
 

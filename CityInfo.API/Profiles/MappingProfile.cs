@@ -8,9 +8,11 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
+        CreateMap<City, CityForCreationDto>().ReverseMap();
+        CreateMap<City, CityForUpdateDto>().ReverseMap();
         CreateMap<PointOfInterest, PointOfInterestDto>().ReverseMap();
         CreateMap<PointOfInterest, PointOfInterestForUpdateDto>().ReverseMap();
-        CreateMap<PointOfInterest, PointOfInterestForCreationDto>().ReverseMap();
-        CreateMap<City, CityForCreationDto>().ReverseMap();
+        CreateMap<CityForUpdateDto, City>();
+
     }
 }
