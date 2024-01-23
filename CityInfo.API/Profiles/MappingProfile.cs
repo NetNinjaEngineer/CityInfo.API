@@ -11,5 +11,6 @@ public class MappingProfile : Profile
         CreateMap<PointOfInterest, PointOfInterestDto>().ReverseMap();
         CreateMap<PointOfInterest, PointOfInterestForUpdateDto>().ReverseMap();
         CreateMap<PointOfInterest, PointOfInterestForCreationDto>().ReverseMap();
+        CreateMap<City, CityForCreationDto>().ReverseMap();
     }
 }

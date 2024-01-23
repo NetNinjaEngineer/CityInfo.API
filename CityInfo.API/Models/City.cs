@@ -2,6 +2,7 @@
 
 public class City
 {
+    public City() { }
     public City(int id, string? name, string? country, int population, double latitude, double longitude)
     {
         Id = id;
