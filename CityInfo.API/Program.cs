@@ -2,6 +2,8 @@
 using CityInfo.API.Data;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using System.Reflection;
 using System.Text.Json.Serialization;
 
 namespace CityInfo.API;
@@ -18,7 +20,9 @@ public class Program
         })
             .AddXmlDataContractSerializerFormatters()
             .AddJsonOptions(options =>
-                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles)
+            .AddNewtonsoftJson(options =>
+                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
 
 
         builder.Services.AddEndpointsApiExplorer();
@@ -28,6 +32,8 @@ public class Program
         var connectionString = builder.Configuration.GetSection("ConnectionStrings:DefaultConnection").Value;
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(connectionString));
+
+        builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
         var app = builder.Build();
 
