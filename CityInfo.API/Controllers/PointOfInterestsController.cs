@@ -25,15 +25,23 @@ public class PointOfInterestsController : ControllerBase
     [HttpGet(Name = "GetPointsOfInterest")]
     public async Task<IActionResult> GetPointsOfInterest(int cityId)
     {
-        var city = await _unitOfWork.CityRepository.GetCityAsync(cityId, true);
-        if (city == null)
-            return NotFound();
+        try
+        {
+            var city = await _unitOfWork.CityRepository.GetCityAsync(cityId, true);
+            if (city == null)
+                return NotFound();
 
-        var pointsOfInterestForCity = await _unitOfWork
-            .PointOfInterestRepository.GetPointsOfInterestForCityAsync(cityId, true);
+            var pointsOfInterestForCity = await _unitOfWork
+                .PointOfInterestRepository.GetPointsOfInterestForCityAsync(cityId, true);
 
-        var pointsOfInterestToReturn = _mapper.Map<IEnumerable<PointOfInterestDto>>(pointsOfInterestForCity);
-        return Ok(pointsOfInterestToReturn);
+            var pointsOfInterestToReturn = _mapper.Map<IEnumerable<PointOfInterestDto>>(pointsOfInterestForCity);
+            return Ok(pointsOfInterestToReturn);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical($"Exception while getting points of interest for city with id {cityId}", ex);
+            return StatusCode(500, "A problem happened while handing your request");
+        }
     }
 
     [HttpGet("{pointOfInterestId}", Name = "GetPointOfInterest")]

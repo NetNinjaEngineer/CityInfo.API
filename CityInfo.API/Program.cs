@@ -5,6 +5,7 @@ using CityInfo.API.Repository;
 using CityInfo.API.Repository.Implementors;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using System.Text.Json.Serialization;
 
 namespace CityInfo.API;
@@ -13,7 +14,14 @@ public class Program
 {
     public static void Main(string[] args)
     {
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .WriteTo.Console()
+            .WriteTo.File("logs/cityinfo.txt", rollingInterval: RollingInterval.Day)
+            .CreateLogger();
+
         var builder = WebApplication.CreateBuilder(args);
+        builder.Host.UseSerilog();
 
         builder.Services.AddControllers(options =>
         {
