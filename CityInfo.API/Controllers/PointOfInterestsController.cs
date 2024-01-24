@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using CityInfo.API.Contracts;
-using CityInfo.API.DataTransferObjects;
+using CityInfo.API.DataTransferObjects.PointOfInterest;
 using CityInfo.API.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;

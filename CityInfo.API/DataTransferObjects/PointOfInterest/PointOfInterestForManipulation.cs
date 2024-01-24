@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace CityInfo.API.DataTransferObjects;
+namespace CityInfo.API.DataTransferObjects.PointOfInterest;
 
 public abstract record PointOfInterestForManipulation
 {

@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using CityInfo.API.Contracts;
-using CityInfo.API.DataTransferObjects;
+using CityInfo.API.DataTransferObjects.City;
 using CityInfo.API.Models;
 using CityInfo.API.RequestFeatures;
 using Microsoft.AspNetCore.Mvc;
@@ -32,10 +32,12 @@ public class CitiesController : ControllerBase
     [HttpPost(Name = "CreateCity")]
     public async Task<IActionResult> CreateCityAsync([FromBody] CityForCreationDto requestModel)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
         var cityForCreationRequest = _mapper.Map<City>(requestModel);
         _unitOfWork.CityRepository.CreateCity(cityForCreationRequest);
         await _unitOfWork.SaveAsync();
-        return CreatedAtRoute("GetCity", new { cityForCreationRequest.Id }, cityForCreationRequest);
+        return CreatedAtRoute("GetCity", new { CityId = cityForCreationRequest.Id }, cityForCreationRequest);
     }
 
     [HttpGet("{cityId}", Name = "GetCity")]

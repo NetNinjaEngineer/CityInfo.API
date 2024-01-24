@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
-using CityInfo.API.DataTransferObjects;
+using CityInfo.API.DataTransferObjects.City;
+using CityInfo.API.DataTransferObjects.PointOfInterest;
 using CityInfo.API.Models;
 
 namespace CityInfo.API.Profiles;

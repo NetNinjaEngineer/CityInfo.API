@@ -1,3 +1,3 @@
-﻿namespace CityInfo.API.DataTransferObjects;
+﻿namespace CityInfo.API.DataTransferObjects.City;
 
 public class CityForUpdateDto : CityForManipulationDto { }
