@@ -23,11 +23,38 @@ public class CitiesController : ControllerBase
         _mapper = mapper;
     }
 
+    [HttpPost]
+    [Route("CreateCityCollection")]
+    public async Task<IActionResult> CreateCityCollectionAsync([FromBody] IEnumerable<CityForCreationDto> cityForCreationCollection)
+    {
+        var cityCollectionEntities = _mapper.Map<IEnumerable<City>>(cityForCreationCollection);
+        foreach (var city in cityCollectionEntities)
+            _unitOfWork.CityRepository.CreateCity(city);
+
+        await _unitOfWork.SaveAsync();
+        return Ok(cityCollectionEntities);
+    }
+
+    //[HttpGet("({ids})")]
+    //public async Task<IActionResult> GetCityCollectionAsync(
+    //    [FromRoute] IEnumerable<int> ids)
+    //{
+    //    if (ids == null)
+    //        return BadRequest();
+
+    //    var cityCollectionToReturn = await _unitOfWork.CityRepository.GetCityCollection(ids);
+
+    //    if (ids.Count() != cityCollectionToReturn.Count())
+    //        return NotFound();
+
+    //    return Ok(cityCollectionToReturn);
+    //}
+
+
     [HttpGet(Name = "GetCitiesAsync")]
     [HttpHead]
     public async Task<IActionResult> GetCitiesAsync()
     {
-        throw new Exception();
         var cities = await _unitOfWork.CityRepository.GetCitiesAsync(trackChanges: true);
         return Ok(cities);
     }

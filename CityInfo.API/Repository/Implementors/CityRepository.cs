@@ -50,4 +50,26 @@ public class CityRepository : GenericRepository<City>, ICityRepository
             cityRequestParameters.PageNumber,
             cityRequestParameters.PageSize);
     }
+
+    public void CreateCityCollection(IEnumerable<City> cityCollection)
+    {
+        var collection = cityCollection.ToList();
+        collection.ForEach(city =>
+        {
+            ArgumentNullException.ThrowIfNull(city);
+            Create(city);
+        });
+
+    }
+
+    public async Task<IEnumerable<City>> GetCityCollection(IEnumerable<int> ids)
+    {
+        var cityCollection = new List<City>();
+        foreach (var id in ids)
+        {
+            var city = await GetCityAsync(id, true);
+            cityCollection.Add(city);
+        }
+        return cityCollection;
+    }
 }

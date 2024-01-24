@@ -1,9 +1,8 @@
-﻿using CityInfo.API.ValidationAttributes;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace CityInfo.API.DataTransferObjects.City;
 
-[CityForManipulation]
+//[CityForManipulation]
 public abstract class CityForManipulationDto
 {
     [Required(ErrorMessage = "You should fill out the name.")]
