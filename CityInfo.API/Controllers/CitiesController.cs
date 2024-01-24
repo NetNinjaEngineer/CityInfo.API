@@ -24,8 +24,10 @@ public class CitiesController : ControllerBase
     }
 
     [HttpGet(Name = "GetCitiesAsync")]
+    [HttpHead]
     public async Task<IActionResult> GetCitiesAsync()
     {
+        throw new Exception();
         var cities = await _unitOfWork.CityRepository.GetCitiesAsync(trackChanges: true);
         return Ok(cities);
     }
@@ -56,6 +58,8 @@ public class CitiesController : ControllerBase
     [HttpPut("{cityId}", Name = "UpdateCity")]
     public async Task<IActionResult> UpdateCityAsync([FromBody] CityForUpdateDto cityForUpdateDto, int cityId)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
         var cityExists = await CheckCityExists(cityId);
         if (!cityExists)
             return NotFound();
@@ -96,6 +100,14 @@ public class CitiesController : ControllerBase
         Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(pagedResult.MetaData));
         return Ok(pagedResult);
     }
+
+    [HttpOptions]
+    public IActionResult GetCityOptions()
+    {
+        Response.Headers.Append("Allow", "GET,OPTIONS,POST,DELETE,PUT");
+        return Ok();
+    }
+
 
     private async Task<bool> CheckCityExists(int cityId)
       => await _unitOfWork.CityRepository
