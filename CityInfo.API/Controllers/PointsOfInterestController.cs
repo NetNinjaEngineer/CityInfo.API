@@ -2,8 +2,10 @@
 using CityInfo.API.Contracts;
 using CityInfo.API.DataTransferObjects.PointOfInterest;
 using CityInfo.API.Models;
+using CityInfo.API.RequestFeatures;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace CityInfo.API.Controllers;
 [Route("api/cities/{cityId}/pointsofinterest")]
@@ -164,6 +166,15 @@ public class PointsOfInterestController : ControllerBase
         _unitOfWork.PointOfInterestRepository.DeletePointOfInterest(pointOfInterest);
         await _unitOfWork.SaveAsync();
         return NoContent();
+    }
+
+    [HttpGet]
+    [Route("GetPointsOfInterestByParameters")]
+    public IActionResult GetPointsOfInterest([FromQuery] PointOfInterestRequestParameters parameters)
+    {
+        var pagedList = _unitOfWork.PointOfInterestRepository.GetPointsOfInterest(parameters);
+        Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(pagedList.MetaData));
+        return Ok(pagedList);
     }
 
     private async Task<bool> CheckCityExists(int cityId)

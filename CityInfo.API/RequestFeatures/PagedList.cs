@@ -21,6 +21,6 @@ public sealed class PagedList<T> : List<T>
     {
         var totalItemsCount = source.Count();
         var pagedItems = source.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
-        return new PagedList<T>(pagedItems, totalItemsCount, pageNumber, pageNumber);
+        return new PagedList<T>(pagedItems, totalItemsCount, pageNumber, pageSize);
     }
 }

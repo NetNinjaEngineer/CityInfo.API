@@ -1,6 +1,5 @@
 ﻿using CityInfo.API.Contracts;
 using CityInfo.API.Data;
-using CityInfo.API.Extensions;
 using CityInfo.API.Models;
 using CityInfo.API.RequestFeatures;
 using Microsoft.EntityFrameworkCore;
@@ -24,23 +23,31 @@ public class CityRepository : GenericRepository<City>, ICityRepository
             c => c.PointOfInterests)
         .FirstOrDefaultAsync();
 
-    public async Task<PagedList<City>> GetCitiesAsync(CityRequestParameters cityRequestParameters)
+    public PagedList<City> GetCities(CityRequestParameters cityRequestParameters)
     {
-        var cities = await GetCitiesAsync(true);
-        if (string.IsNullOrEmpty(cityRequestParameters.SearchTerm) &&
-             string.IsNullOrEmpty(cityRequestParameters.FilterTerm))
-            return PagedList<City>.ToPagedList(cities.ToList(), cityRequestParameters.PageNumber, cityRequestParameters.PageSize);
-
-        var collection = cities;
+        ArgumentNullException.ThrowIfNull(nameof(cityRequestParameters));
+        var cities = GetCitiesAsync(true).Result.ToList();
+        if (string.IsNullOrEmpty(cityRequestParameters.SearchTerm)
+            && string.IsNullOrEmpty(cityRequestParameters.FilterTerm))
+            return PagedList<City>.ToPagedList(cities,
+                cityRequestParameters.PageNumber, cityRequestParameters.PageSize);
 
         if (!string.IsNullOrWhiteSpace(cityRequestParameters.FilterTerm) ||
-            !string.IsNullOrWhiteSpace(cityRequestParameters.SearchTerm))
+          !string.IsNullOrWhiteSpace(cityRequestParameters.SearchTerm))
         {
-            collection = collection.AsQueryable().Filter(cityRequestParameters.FilterTerm);
-            collection = collection.AsQueryable().Search(cityRequestParameters.SearchTerm);
+            var filterTerm = cityRequestParameters.FilterTerm?.Trim();
+            var searchTerm = cityRequestParameters.SearchTerm?.Trim();
+
+            cities = cities
+                .Where(c => c.Name!.Equals(filterTerm, StringComparison.CurrentCultureIgnoreCase) ||
+                (
+                    c.Name!.Contains(searchTerm!, StringComparison.CurrentCultureIgnoreCase) ||
+                    c.Country!.Contains(searchTerm!, StringComparison.CurrentCultureIgnoreCase)
+                )).ToList();
         }
 
-
-        return PagedList<City>.ToPagedList(collection.ToList(), cityRequestParameters.PageNumber, cityRequestParameters.PageSize);
+        return PagedList<City>.ToPagedList(cities,
+            cityRequestParameters.PageNumber,
+            cityRequestParameters.PageSize);
     }
 }

@@ -8,4 +8,6 @@ public sealed class MetaData
     public int PageSize { get; set; }
     public bool HasNext => CurrentPage < TotalPages;
     public bool HasPrevious => CurrentPage > 1;
+    public string? PreviousPageLink { get; set; }
+    public string? NextPageLink { get; set; }
 }

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CityInfo.API.Contracts;
 using CityInfo.API.DataTransferObjects.City;
+using CityInfo.API.Helpers;
 using CityInfo.API.Models;
 using CityInfo.API.RequestFeatures;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +23,7 @@ public class CitiesController : ControllerBase
         _mapper = mapper;
     }
 
-    [HttpGet]
+    [HttpGet(Name = "GetCitiesAsync")]
     public async Task<IActionResult> GetCitiesAsync()
     {
         var cities = await _unitOfWork.CityRepository.GetCitiesAsync(trackChanges: true);
@@ -83,9 +84,15 @@ public class CitiesController : ControllerBase
 
     [HttpGet]
     [Route("GetCitiesByCityParamaters")]
-    public async Task<IActionResult> GetCitiesAsync([FromQuery] CityRequestParameters cityRequestParameters)
+    public IActionResult GetCities([FromQuery] CityRequestParameters cityRequestParameters)
     {
-        var pagedResult = await _unitOfWork.CityRepository.GetCitiesAsync(cityRequestParameters);
+        var pagedResult = _unitOfWork.CityRepository.GetCities(cityRequestParameters);
+        pagedResult.MetaData.PreviousPageLink = (pagedResult.MetaData.HasPrevious) ?
+            CreateCitiesResourceUri(cityRequestParameters, ResourceUriType.PreviousPage) : null;
+
+        pagedResult.MetaData.NextPageLink = (pagedResult.MetaData.HasNext) ?
+             CreateCitiesResourceUri(cityRequestParameters, ResourceUriType.NextPage) : null;
+
         Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(pagedResult.MetaData));
         return Ok(pagedResult);
     }
@@ -93,4 +100,39 @@ public class CitiesController : ControllerBase
     private async Task<bool> CheckCityExists(int cityId)
       => await _unitOfWork.CityRepository
       .GetCityAsync(cityId, true) == null ? false : true;
+
+    private string CreateCitiesResourceUri(CityRequestParameters cityRequestParameters,
+        ResourceUriType resourceUriType)
+    {
+        switch (resourceUriType)
+        {
+            case ResourceUriType.PreviousPage:
+                return Url.Link("GetCitiesAsync", new
+                {
+                    pageNumber = cityRequestParameters.PageNumber - 1,
+                    pageSize = cityRequestParameters.PageSize,
+                    searchTerm = cityRequestParameters.SearchTerm,
+                    filterTerm = cityRequestParameters.FilterTerm
+                })!;
+
+            case ResourceUriType.NextPage:
+                return Url.Link("GetCitiesAsync", new
+                {
+                    pageNumber = cityRequestParameters.PageNumber + 1,
+                    pageSize = cityRequestParameters.PageSize,
+                    searchTerm = cityRequestParameters.SearchTerm,
+                    filterTerm = cityRequestParameters.FilterTerm
+                })!;
+
+            default:
+                return Url.Link("GetCitiesAsync", new
+                {
+                    pageNumber = cityRequestParameters.PageNumber - 1,
+                    pageSize = cityRequestParameters.PageSize,
+                    searchTerm = cityRequestParameters.SearchTerm,
+                    filterTerm = cityRequestParameters.FilterTerm
+                })!;
+        }
+    }
+
 }

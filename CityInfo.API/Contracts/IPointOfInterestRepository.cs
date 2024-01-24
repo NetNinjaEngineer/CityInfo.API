@@ -1,4 +1,5 @@
 ﻿using CityInfo.API.Models;
+using CityInfo.API.RequestFeatures;
 
 namespace CityInfo.API.Contracts;
 
@@ -10,4 +11,5 @@ public interface IPointOfInterestRepository
     void DeletePointOfInterest(PointOfInterest pointOfInterest);
     void UpdatePointOfInterest(PointOfInterest pointOfInterest);
     void CreatePointOfInterest(PointOfInterest pointOfInterest);
+    PagedList<PointOfInterest> GetPointsOfInterest(PointOfInterestRequestParameters pointOfInterestParameters);
 }
