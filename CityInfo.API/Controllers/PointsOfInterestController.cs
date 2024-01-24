@@ -133,20 +133,14 @@ public class PointsOfInterestController : ControllerBase
         if (pointOfInterest == null)
             return NotFound();
 
-        var pointOfInterestToPatch = new PointOfInterestForUpdateDto
-        {
-            Category = pointOfInterest.Category,
-            Description = pointOfInterest.Description,
-            Latitude = pointOfInterest.Latitude,
-            Longitude = pointOfInterest.Longitude
-        };
+        var pointOfInterestToPatch = _mapper.Map<PointOfInterestForUpdateDto>(pointOfInterest);
 
         patchDocument.ApplyTo(pointOfInterestToPatch, ModelState);
 
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        _mapper.Map<PointOfInterest>(pointOfInterestToPatch);
+        _mapper.Map(pointOfInterestToPatch, pointOfInterest);
 
         await _unitOfWork.SaveAsync();
 
