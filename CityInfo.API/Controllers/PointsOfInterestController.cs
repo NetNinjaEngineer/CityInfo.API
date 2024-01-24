@@ -8,14 +8,14 @@ using Microsoft.AspNetCore.Mvc;
 namespace CityInfo.API.Controllers;
 [Route("api/cities/{cityId}/pointsofinterest")]
 [ApiController]
-public class PointOfInterestsController : ControllerBase
+public class PointsOfInterestController : ControllerBase
 {
     private readonly IUnitOfWork _unitOfWork;
-    private readonly ILogger<PointOfInterestsController> _logger;
+    private readonly ILogger<PointsOfInterestController> _logger;
     private readonly IMapper _mapper;
 
-    public PointOfInterestsController(IUnitOfWork unitOfWork,
-        ILogger<PointOfInterestsController> logger, IMapper mapper)
+    public PointsOfInterestController(IUnitOfWork unitOfWork,
+        ILogger<PointsOfInterestController> logger, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
