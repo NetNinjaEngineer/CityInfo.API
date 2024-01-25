@@ -1,4 +1,4 @@
-
+using CityInfo.API.ActionFilters;
 using CityInfo.API.Contracts;
 using CityInfo.API.Data;
 using CityInfo.API.Repository;
@@ -30,14 +30,13 @@ public class Program
         {
             options.ReturnHttpNotAcceptable = true;
         })
-            .AddXmlDataContractSerializerFormatters()
             .AddJsonOptions(options =>
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles)
+            .AddXmlDataContractSerializerFormatters()
             .ConfigureApiBehaviorOptions(setupAction =>
             {
                 setupAction.InvalidModelStateResponseFactory = context =>
                 {
-                    // Create problem details object
                     var problemDetailsFactory = context.HttpContext.RequestServices
                     .GetRequiredService<ProblemDetailsFactory>();
 
@@ -84,6 +83,8 @@ public class Program
         builder.Services.AddScoped<IPointOfInterestRepository, PointOfInterestRepository>();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<IAuthService, AuthService>();
+        builder.Services.AddScoped<CityExistsFilterAttribute>();
+        builder.Services.AddScoped<ValidationFilterAttribute>();
 
         var app = builder.Build();
 

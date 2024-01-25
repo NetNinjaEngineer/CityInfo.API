@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CityInfo.API.ActionFilters;
 using CityInfo.API.Contracts;
 using CityInfo.API.DataTransferObjects.City;
 using CityInfo.API.Helpers;
@@ -37,7 +38,8 @@ public class CitiesController : ControllerBase
 
     //[HttpGet("({ids})")]
     //public async Task<IActionResult> GetCityCollectionAsync(
-    //    [FromRoute] IEnumerable<int> ids)
+    //    [FromRoute]
+    //    [ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<int> ids)
     //{
     //    if (ids == null)
     //        return BadRequest();
@@ -60,6 +62,7 @@ public class CitiesController : ControllerBase
     }
 
     [HttpPost(Name = "CreateCity")]
+    [ServiceFilter(typeof(ValidationFilterAttribute))]
     public async Task<IActionResult> CreateCityAsync([FromBody] CityForCreationDto requestModel)
     {
         if (!ModelState.IsValid)
@@ -82,14 +85,12 @@ public class CitiesController : ControllerBase
         return Ok(city);
     }
 
+
     [HttpPut("{cityId}", Name = "UpdateCity")]
+    [ServiceFilter(typeof(CityExistsFilterAttribute), Order = 2)]
+    [ServiceFilter(typeof(ValidationFilterAttribute), Order = 1)]
     public async Task<IActionResult> UpdateCityAsync([FromBody] CityForUpdateDto cityForUpdateDto, int cityId)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-        var cityExists = await CheckCityExists(cityId);
-        if (!cityExists)
-            return NotFound();
         var cityForUpdate = await _unitOfWork.CityRepository
             .GetCityAsync(cityId, trackChanges: true);
         var cityForUpdateToReturn = _mapper.Map(cityForUpdateDto, cityForUpdate);
@@ -101,11 +102,9 @@ public class CitiesController : ControllerBase
 
 
     [HttpDelete("{cityId}")]
+    [ServiceFilter(typeof(CityExistsFilterAttribute))]
     public async Task<IActionResult> DeleteCityAsync(int cityId)
     {
-        var existCity = await CheckCityExists(cityId);
-        if (!existCity)
-            return NotFound();
         var cityForDelete = await _unitOfWork.CityRepository.GetCityAsync(cityId,
             trackChanges: true);
         _unitOfWork.CityRepository.DeleteCity(cityForDelete);
