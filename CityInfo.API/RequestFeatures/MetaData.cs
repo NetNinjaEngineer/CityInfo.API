@@ -10,4 +10,5 @@ public sealed class MetaData
     public bool HasPrevious => CurrentPage > 1;
     public string? PreviousPageLink { get; set; }
     public string? NextPageLink { get; set; }
+    public string? Fields { get; set; }
 }

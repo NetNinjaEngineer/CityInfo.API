@@ -16,12 +16,14 @@ public class CitiesController : ControllerBase
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<CitiesController> _logger;
     private readonly IMapper _mapper;
+    private readonly IPropertyCheckerService _propertyCheckerService;
 
-    public CitiesController(IUnitOfWork unitOfWork, ILogger<CitiesController> logger, IMapper mapper)
+    public CitiesController(IUnitOfWork unitOfWork, ILogger<CitiesController> logger, IMapper mapper, IPropertyCheckerService propertyCheckerService)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
         _mapper = mapper;
+        _propertyCheckerService = propertyCheckerService;
     }
 
     [HttpPost]
@@ -74,15 +76,21 @@ public class CitiesController : ControllerBase
     }
 
     [HttpGet("{cityId}", Name = "GetCity")]
-    public async Task<IActionResult> GetCityAsync(int cityId)
+    public async Task<IActionResult> GetCityAsync(int cityId, string fields)
     {
+        if (string.IsNullOrWhiteSpace(fields))
+            return BadRequest($"{nameof(fields)} is null");
+
+        if (!_propertyCheckerService.TypeHasProperties<City>(fields))
+            return BadRequest($"Type city doesn't have properties '{fields}' .");
+
         var city = await _unitOfWork.CityRepository.GetCityAsync(cityId, trackChanges: true);
         if (city == null)
         {
             _logger.LogInformation($"There is no city founded with id: {cityId}");
             return NotFound();
         }
-        return Ok(city);
+        return Ok(city.ShapeObject(fields));
     }
 
 
@@ -116,6 +124,9 @@ public class CitiesController : ControllerBase
     [Route("GetCitiesByCityParamaters")]
     public IActionResult GetCities([FromQuery] CityRequestParameters cityRequestParameters)
     {
+        if (!_propertyCheckerService.TypeHasProperties<City>(cityRequestParameters.Fields))
+            return BadRequest($"Type city doesn't have properties '{cityRequestParameters.Fields}' .");
+
         var pagedResult = _unitOfWork.CityRepository.GetCities(cityRequestParameters);
         pagedResult.MetaData.PreviousPageLink = (pagedResult.MetaData.HasPrevious) ?
             CreateCitiesResourceUri(cityRequestParameters, ResourceUriType.PreviousPage) : null;
@@ -123,8 +134,10 @@ public class CitiesController : ControllerBase
         pagedResult.MetaData.NextPageLink = (pagedResult.MetaData.HasNext) ?
              CreateCitiesResourceUri(cityRequestParameters, ResourceUriType.NextPage) : null;
 
+        pagedResult.MetaData.Fields = (string.IsNullOrEmpty(cityRequestParameters.Fields)) ? null : cityRequestParameters.Fields;
+
         Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(pagedResult.MetaData));
-        return Ok(pagedResult);
+        return Ok(pagedResult.ShapData(cityRequestParameters.Fields!));
     }
 
     [HttpOptions]
@@ -147,6 +160,7 @@ public class CitiesController : ControllerBase
             case ResourceUriType.PreviousPage:
                 return Url.Link("GetCitiesAsync", new
                 {
+                    fields = cityRequestParameters.Fields,
                     pageNumber = cityRequestParameters.PageNumber - 1,
                     pageSize = cityRequestParameters.PageSize,
                     searchTerm = cityRequestParameters.SearchTerm,
@@ -156,6 +170,7 @@ public class CitiesController : ControllerBase
             case ResourceUriType.NextPage:
                 return Url.Link("GetCitiesAsync", new
                 {
+                    fields = cityRequestParameters.Fields,
                     pageNumber = cityRequestParameters.PageNumber + 1,
                     pageSize = cityRequestParameters.PageSize,
                     searchTerm = cityRequestParameters.SearchTerm,
@@ -165,6 +180,7 @@ public class CitiesController : ControllerBase
             default:
                 return Url.Link("GetCitiesAsync", new
                 {
+                    fields = cityRequestParameters.Fields,
                     pageNumber = cityRequestParameters.PageNumber - 1,
                     pageSize = cityRequestParameters.PageSize,
                     searchTerm = cityRequestParameters.SearchTerm,

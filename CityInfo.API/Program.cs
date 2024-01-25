@@ -3,6 +3,7 @@ using CityInfo.API.Contracts;
 using CityInfo.API.Data;
 using CityInfo.API.Repository;
 using CityInfo.API.Repository.Implementors;
+using CityInfo.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -85,6 +86,7 @@ public class Program
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<CityExistsFilterAttribute>();
         builder.Services.AddScoped<ValidationFilterAttribute>();
+        builder.Services.AddTransient<IPropertyCheckerService, PropertyCheckerService>();
 
         var app = builder.Build();
 
