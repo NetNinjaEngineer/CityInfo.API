@@ -12,7 +12,7 @@ public static class ObjectExtensions
         var propertyInfoList = new List<PropertyInfo>();
         if (string.IsNullOrWhiteSpace(fields))
         {
-            var propertyInfos = source.GetType().GetProperties(BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.Static);
+            var propertyInfos = source.GetType().GetProperties(BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.Instance);
             propertyInfoList.AddRange(propertyInfos);
         }
         else

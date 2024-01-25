@@ -2,6 +2,7 @@
 using CityInfo.API.ActionFilters;
 using CityInfo.API.Contracts;
 using CityInfo.API.DataTransferObjects.City;
+using CityInfo.API.DataTransferObjects.Link;
 using CityInfo.API.Helpers;
 using CityInfo.API.Models;
 using CityInfo.API.RequestFeatures;
@@ -38,23 +39,6 @@ public class CitiesController : ControllerBase
         return Ok(cityCollectionEntities);
     }
 
-    //[HttpGet("({ids})")]
-    //public async Task<IActionResult> GetCityCollectionAsync(
-    //    [FromRoute]
-    //    [ModelBinder(BinderType = typeof(ArrayModelBinder))] IEnumerable<int> ids)
-    //{
-    //    if (ids == null)
-    //        return BadRequest();
-
-    //    var cityCollectionToReturn = await _unitOfWork.CityRepository.GetCityCollection(ids);
-
-    //    if (ids.Count() != cityCollectionToReturn.Count())
-    //        return NotFound();
-
-    //    return Ok(cityCollectionToReturn);
-    //}
-
-
     [HttpGet(Name = "GetCitiesAsync")]
     [HttpHead]
     public async Task<IActionResult> GetCitiesAsync()
@@ -72,17 +56,21 @@ public class CitiesController : ControllerBase
         var cityForCreationRequest = _mapper.Map<City>(requestModel);
         _unitOfWork.CityRepository.CreateCity(cityForCreationRequest);
         await _unitOfWork.SaveAsync();
-        return CreatedAtRoute("GetCity", new { CityId = cityForCreationRequest.Id }, cityForCreationRequest);
+        var cityToReturn = _mapper.Map<City>(cityForCreationRequest);
+        var links = CreateLinksForCity(cityToReturn.Id, null!);
+        var linkedResourceToReturn = cityToReturn.ShapeObject(null!)
+            as IDictionary<string, object>;
+        linkedResourceToReturn.Add("links", links);
+
+        return CreatedAtRoute("GetCity", new { CityId = (int)linkedResourceToReturn["Id"] }, linkedResourceToReturn);
     }
 
     [HttpGet("{cityId}", Name = "GetCity")]
-    public async Task<IActionResult> GetCityAsync(int cityId, string fields)
+    public async Task<IActionResult> GetCityAsync(int cityId, string? fields)
     {
-        if (string.IsNullOrWhiteSpace(fields))
-            return BadRequest($"{nameof(fields)} is null");
-
-        if (!_propertyCheckerService.TypeHasProperties<City>(fields))
-            return BadRequest($"Type city doesn't have properties '{fields}' .");
+        if (fields != null)
+            if (!_propertyCheckerService.TypeHasProperties<City>(fields))
+                return BadRequest($"Type city doesn't have properties '{fields}' .");
 
         var city = await _unitOfWork.CityRepository.GetCityAsync(cityId, trackChanges: true);
         if (city == null)
@@ -90,7 +78,11 @@ public class CitiesController : ControllerBase
             _logger.LogInformation($"There is no city founded with id: {cityId}");
             return NotFound();
         }
-        return Ok(city.ShapeObject(fields));
+
+        var cityLinks = CreateLinksForCity(cityId, fields!);
+        var linkedResourceToReturn = city.ShapeObject(fields!) as IDictionary<string, object>;
+        linkedResourceToReturn.Add("links", cityLinks);
+        return Ok(linkedResourceToReturn);
     }
 
 
@@ -109,7 +101,7 @@ public class CitiesController : ControllerBase
 
 
 
-    [HttpDelete("{cityId}")]
+    [HttpDelete("{cityId}", Name = "DeleteCity")]
     [ServiceFilter(typeof(CityExistsFilterAttribute))]
     public async Task<IActionResult> DeleteCityAsync(int cityId)
     {
@@ -189,4 +181,58 @@ public class CitiesController : ControllerBase
         }
     }
 
+    private IEnumerable<LinkDto> CreateLinksForCity(int cityId, string fields)
+    {
+        var cityLinks = new List<LinkDto>();
+        if (string.IsNullOrWhiteSpace(fields))
+        {
+
+            cityLinks.Add(new LinkDto
+            {
+                Href = Url.Link("GetCity", new { cityId }),
+                Rel = "self",
+                Method = "GET"
+            });
+        }
+
+        else
+        {
+            cityLinks.Add(new LinkDto
+            {
+                Href = Url.Link("GetCity", new { cityId, fields }),
+                Rel = "self",
+                Method = "GET"
+            });
+        }
+
+        cityLinks.AddRange([
+            new()
+            {
+                Href = Url.Link("GetCity", new { cityId }),
+                Rel = "get_city",
+                Method = "GET"
+            },
+            new()
+            {
+                Href = Url.Link("DeleteCity", new { cityId }),
+                Rel = "delete_city",
+                Method = "DELETE"
+            },
+            new()
+            {
+                Href = Url.Link("UpdateCity", new { cityId }),
+                Rel = "update_city",
+                Method = "PUT"
+            },
+            new()
+            {
+                Href = Url.Link("CreateCity", new{ }),
+                Rel = "create_city",
+                Method = "POST"
+            }
+        ]);
+
+        return cityLinks;
+
+    }
 }
